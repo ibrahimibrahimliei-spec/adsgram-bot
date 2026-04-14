@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script async src="https://sad.adsgram.ai/js/sad.min.js"></script>
+</head>
+<body>
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+
+    const AdController = window.Adsgram.init({ blockId: "bot-27759" });
+
+    AdController.show().then(() => {
+      tg.sendData("ad_watched");
+    }).catch(() => {
+      tg.sendData("ad_watched");
+    });
+  </script>
+</body>
+</html>
