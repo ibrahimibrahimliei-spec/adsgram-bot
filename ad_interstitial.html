@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Qısa Reklam</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Monetag skriptini buraya əlavə edin -->
+  <!-- <script src="//niphauree.com/10878049/invoke.js" async></script> -->
+  <style>
+    body { margin: 0; background: #0d0d1a; display: flex; flex-direction: column;
+           align-items: center; justify-content: center; height: 100vh;
+           font-family: Arial, sans-serif; color: #fff; text-align: center; }
+    .card { background: #111122; border-radius: 16px; padding: 28px 20px; max-width: 300px; }
+    h2 { margin: 0 0 6px; font-size: 20px; }
+    p  { margin: 0 0 16px; color: #999; font-size: 13px; }
+    #adBox { min-height: 200px; border: 1px dashed #333; border-radius: 8px;
+             display: flex; align-items: center; justify-content: center;
+             color: #555; font-size: 13px; margin-bottom: 16px; }
+    #countdown { font-size: 40px; font-weight: bold; color: #4ecca3; margin-bottom: 12px; }
+    button { width: 100%; padding: 13px; border: none; border-radius: 10px;
+             background: #1a3a5c; color: #fff; font-size: 15px; cursor: pointer; }
+    button:disabled { opacity: .4; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>⏱ Qısa Fasilə</h2>
+    <p>5 saniyəlik reklam — sonra testə davam edin</p>
+    <div id="adBox">Reklam yüklənir...</div>
+    <div id="countdown">5</div>
+    <button id="closeBtn" onclick="closePage()" disabled>▶️ Davam et</button>
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+
+    let seconds = 5;
+    const countdownEl = document.getElementById('countdown');
+    const closeBtn    = document.getElementById('closeBtn');
+    const adBox       = document.getElementById('adBox');
+
+    // ── Monetag In-App Interstitial ──
+    // Monetag skripti yüklənəndən sonra bu kodu aktiv edin:
+    /*
+    show_10878049({
+      type: 'inApp',
+      inAppSettings: {
+        frequency: 1,
+        capping: 1,
+        interval: 0,
+        timeout: 0,
+        everyPage: true
+      }
+    });
+    */
+
+    // ── 5 saniyə geri sayım (TEST MOD) ──
+    adBox.textContent = '📢 Reklam yerləşdirilir...';
+
+    const timer = setInterval(() => {
+      seconds--;
+      countdownEl.textContent = seconds;
+      if (seconds <= 0) {
+        clearInterval(timer);
+        adBox.innerHTML = '<span style="color:#4ecca3">✅ Reklam tamamlandı</span>';
+        countdownEl.textContent = '✅';
+        closeBtn.disabled = false;
+        closeBtn.textContent = '▶️ Testə davam et';
+      }
+    }, 1000);
+
+    function closePage() {
+      tg.close();
+    }
+  </script>
+</body>
+</html>

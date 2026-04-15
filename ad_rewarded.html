@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reklam</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Monetag: öz script URL-nizi buraya əlavə edin -->
+  <!-- <script src="//niphauree.com/10878049/invoke.js" async></script> -->
+  <style>
+    body { margin: 0; background: #1a1a2e; display: flex; flex-direction: column;
+           align-items: center; justify-content: center; height: 100vh;
+           font-family: Arial, sans-serif; color: #fff; text-align: center; }
+    .card { background: #16213e; border-radius: 16px; padding: 32px 24px; max-width: 320px; }
+    h2 { margin: 0 0 8px; font-size: 22px; }
+    p  { margin: 0 0 24px; color: #aaa; font-size: 14px; }
+    #adContainer { min-height: 250px; display: flex; align-items: center;
+                   justify-content: center; border: 1px dashed #444;
+                   border-radius: 8px; margin-bottom: 20px; color: #666; font-size: 13px; }
+    button { width: 100%; padding: 14px; border: none; border-radius: 10px;
+             background: #0f3460; color: #fff; font-size: 16px; cursor: pointer; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    #status { margin-top: 12px; font-size: 13px; color: #4ecca3; min-height: 18px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>📢 Reklam</h2>
+    <p>Testi açmaq üçün reklamı izləyin</p>
+    <div id="adContainer">Reklam yüklənir...</div>
+    <button id="watchBtn" onclick="watchAd()">▶️ Reklamı İzlə</button>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+
+    function setStatus(msg) {
+      document.getElementById('status').textContent = msg;
+    }
+
+    function watchAd() {
+      document.getElementById('watchBtn').disabled = true;
+      setStatus('Reklam başlayır...');
+
+      // ── Monetag Rewarded Interstitial ──
+      // show_10878049() funksiyasını çağırın.
+      // Əgər skript yüklənibsə, aşağıdakı kodu açın:
+      /*
+      show_10878049().then(() => {
+        setStatus('✅ Reklam izləndi! Geri qayıda bilərsiniz.');
+        document.getElementById('watchBtn').textContent = '✅ Tamamlandı';
+      }).catch(e => {
+        setStatus('⚠️ Reklam yüklənmədi. Yenə cəhd edin.');
+        document.getElementById('watchBtn').disabled = false;
+      });
+      */
+
+      // ── TEST MOD (Monetag skripti olmadıqda) ──
+      setTimeout(() => {
+        document.getElementById('adContainer').innerHTML =
+          '<span style="color:#4ecca3">✅ Reklam tamamlandı</span>';
+        setStatus('✅ Bitdi! Testi başlatmaq üçün bota qayıdın.');
+        document.getElementById('watchBtn').textContent = '✅ Tamamlandı';
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
