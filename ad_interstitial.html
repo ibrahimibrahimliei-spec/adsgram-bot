@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Qısa Reklam</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- Monetag skriptini buraya əlavə edin -->
-  <!-- <script src="//niphauree.com/10878049/invoke.js" async></script> -->
+  <script src='//libtl.com/sdk.js' data-zone='10878049' data-sdk='show_10878049'></script>
   <style>
     body { margin: 0; background: #0d0d1a; display: flex; flex-direction: column;
            align-items: center; justify-content: center; height: 100vh;
@@ -43,8 +42,6 @@
     const adBox       = document.getElementById('adBox');
 
     // ── Monetag In-App Interstitial ──
-    // Monetag skripti yüklənəndən sonra bu kodu aktiv edin:
-    /*
     show_10878049({
       type: 'inApp',
       inAppSettings: {
@@ -55,10 +52,9 @@
         everyPage: true
       }
     });
-    */
 
-    // ── 5 saniyə geri sayım (TEST MOD) ──
-    adBox.textContent = '📢 Reklam yerləşdirilir...';
+    // ── 5 saniyə geri sayım (reklam bitmədən "Davam et" aktiv olmur) ──
+    adBox.textContent = '📢 Reklam yüklənir...';
 
     const timer = setInterval(() => {
       seconds--;

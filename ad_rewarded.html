@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reklam</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- Monetag: öz script URL-nizi buraya əlavə edin -->
-  <!-- <script src="//niphauree.com/10878049/invoke.js" async></script> -->
+  <script src='//libtl.com/sdk.js' data-zone='10878049' data-sdk='show_10878049'></script>
   <style>
     body { margin: 0; background: #1a1a2e; display: flex; flex-direction: column;
            align-items: center; justify-content: center; height: 100vh;
@@ -45,10 +44,6 @@
       document.getElementById('watchBtn').disabled = true;
       setStatus('Reklam başlayır...');
 
-      // ── Monetag Rewarded Interstitial ──
-      // show_10878049() funksiyasını çağırın.
-      // Əgər skript yüklənibsə, aşağıdakı kodu açın:
-      /*
       show_10878049().then(() => {
         setStatus('✅ Reklam izləndi! Geri qayıda bilərsiniz.');
         document.getElementById('watchBtn').textContent = '✅ Tamamlandı';
@@ -56,15 +51,6 @@
         setStatus('⚠️ Reklam yüklənmədi. Yenə cəhd edin.');
         document.getElementById('watchBtn').disabled = false;
       });
-      */
-
-      // ── TEST MOD (Monetag skripti olmadıqda) ──
-      setTimeout(() => {
-        document.getElementById('adContainer').innerHTML =
-          '<span style="color:#4ecca3">✅ Reklam tamamlandı</span>';
-        setStatus('✅ Bitdi! Testi başlatmaq üçün bota qayıdın.');
-        document.getElementById('watchBtn').textContent = '✅ Tamamlandı';
-      }, 2000);
     }
   </script>
 </body>
