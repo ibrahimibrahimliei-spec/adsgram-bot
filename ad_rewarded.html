@@ -20,6 +20,7 @@
              background: #0f3460; color: #fff; font-size: 16px; cursor: pointer; }
     button:disabled { opacity: .5; cursor: not-allowed; }
     #status { margin-top: 12px; font-size: 13px; color: #4ecca3; min-height: 18px; }
+    #countdown { font-size: 13px; color: #ff6b6b; margin-top: 8px; min-height: 18px; }
   </style>
 </head>
 <body>
@@ -29,6 +30,7 @@
     <div id="adContainer">Reklam yüklənir...</div>
     <button id="watchBtn" onclick="watchAd()">▶️ Reklamı İzlə</button>
     <div id="status"></div>
+    <div id="countdown"></div>
   </div>
 
   <script>
@@ -36,20 +38,58 @@
     tg.ready();
     tg.expand();
 
+    let adWatched = false;
+    let countdownTimer = null;
+
     function setStatus(msg) {
       document.getElementById('status').textContent = msg;
     }
 
+    function setCountdown(msg) {
+      document.getElementById('countdown').textContent = msg;
+    }
+
     function watchAd() {
-      document.getElementById('watchBtn').disabled = true;
+      const btn = document.getElementById('watchBtn');
+      btn.disabled = true;
       setStatus('Reklam başlayır...');
 
+      // Minimum gözləmə müddəti: 5 saniyə
+      let waited = 0;
+      countdownTimer = setInterval(() => {
+        waited++;
+        setCountdown(`⏳ Reklam müddəti: ${waited}s...`);
+      }, 1000);
+
       show_10878049().then(() => {
-        setStatus('✅ Reklam izləndi! Geri qayıda bilərsiniz.');
-        document.getElementById('watchBtn').textContent = '✅ Tamamlandı';
+        clearInterval(countdownTimer);
+        adWatched = true;
+        setStatus('✅ Reklam tamamlandı! Bota qayıdın.');
+        setCountdown('');
+        btn.textContent = '✅ Reklam İzləndi';
+        btn.style.background = '#1a6640';
+        // 2 saniyə sonra WebApp-ı bağla ki istifadəçi bota qayıtsın
+        setTimeout(() => {
+          tg.close();
+        }, 2000);
       }).catch(e => {
-        setStatus('⚠️ Reklam yüklənmədi. Yenə cəhd edin.');
-        document.getElementById('watchBtn').disabled = false;
+        clearInterval(countdownTimer);
+        // Reklam yüklənmədisə - 5 saniyə gözlədik, onda icazə ver
+        if (waited >= 5) {
+          adWatched = true;
+          setStatus('ℹ️ Reklam yüklənmədi, davam edə bilərsiniz.');
+          setCountdown('');
+          btn.textContent = '✅ Davam et';
+          btn.style.background = '#1a6640';
+          setTimeout(() => {
+            tg.close();
+          }, 1500);
+        } else {
+          setStatus('⚠️ Reklam yüklənmədi. Yenə cəhd edin.');
+          setCountdown('');
+          btn.disabled = false;
+          btn.textContent = '▶️ Yenidən Cəhd Et';
+        }
       });
     }
   </script>
