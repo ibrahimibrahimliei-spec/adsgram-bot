@@ -38,15 +38,40 @@
     tg.ready();
     tg.expand();
 
-    let adWatched = false;
+    // Reklamın hansı kontekstdə olduğunu URL hash-dən oxuyuruq
+    // bot bu HTML-i belə açacaq:
+    //   ?...#ctx=start  → /start sonrası reklam (ana menyuya keçid)
+    //   ?...#ctx=cont   → test arası reklam (növbəti suala keçid)
+    const hash = window.location.hash.replace('#', '');
+    const params = new URLSearchParams(hash);
+    const ctx = params.get('ctx') || 'start';
+
     let countdownTimer = null;
+    let confirmed = false;
 
     function setStatus(msg) {
       document.getElementById('status').textContent = msg;
     }
-
     function setCountdown(msg) {
       document.getElementById('countdown').textContent = msg;
+    }
+
+    function confirmAndClose(reason) {
+      if (confirmed) return;
+      confirmed = true;
+      // Bota məlumat göndər: reklam tamamlandı + kontekst + səbəb + timestamp.
+      // Bot bu siqnalı yoxlayır — manual keçid yoxdur.
+      const payload = JSON.stringify({
+        type: 'ad_done',
+        ctx: ctx,
+        reason: reason,
+        ts: Date.now()
+      });
+      try {
+        tg.sendData(payload);
+      } catch (e) {
+        setStatus('❌ Bota siqnal göndərilə bilmədi: ' + e.message);
+      }
     }
 
     function watchAd() {
@@ -54,7 +79,6 @@
       btn.disabled = true;
       setStatus('Reklam başlayır...');
 
-      // Minimum gözləmə müddəti: 5 saniyə
       let waited = 0;
       countdownTimer = setInterval(() => {
         waited++;
@@ -63,29 +87,23 @@
 
       show_10878049().then(() => {
         clearInterval(countdownTimer);
-        adWatched = true;
-        setStatus('✅ Reklam tamamlandı! Bota qayıdın.');
+        setStatus('✅ Reklam tamamlandı!');
         setCountdown('');
         btn.textContent = '✅ Reklam İzləndi';
         btn.style.background = '#1a6640';
-        // 2 saniyə sonra WebApp-ı bağla ki istifadəçi bota qayıtsın
-        setTimeout(() => {
-          tg.close();
-        }, 2000);
+        confirmAndClose('completed');
       }).catch(e => {
         clearInterval(countdownTimer);
-        // Reklam yüklənmədisə - 5 saniyə gözlədik, onda icazə ver
+        // Reklam yüklənmədisə və minimum 5 saniyə keçibsə, yenə də icazə ver.
+        // Bu, monetag bəzən boş zonadan reklam göstərə bilməyəndə işləyir.
         if (waited >= 5) {
-          adWatched = true;
-          setStatus('ℹ️ Reklam yüklənmədi, davam edə bilərsiniz.');
+          setStatus('ℹ️ Reklam yüklənmədi.');
           setCountdown('');
           btn.textContent = '✅ Davam et';
           btn.style.background = '#1a6640';
-          setTimeout(() => {
-            tg.close();
-          }, 1500);
+          confirmAndClose('no_inventory');
         } else {
-          setStatus('⚠️ Reklam yüklənmədi. Yenə cəhd edin.');
+          setStatus('⚠️ Reklam yüklənmədi. Bir az gözləyib yenə cəhd edin.');
           setCountdown('');
           btn.disabled = false;
           btn.textContent = '▶️ Yenidən Cəhd Et';
