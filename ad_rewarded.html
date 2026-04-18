@@ -8,19 +8,24 @@
   <script src='//libtl.com/sdk.js' data-zone='10878049' data-sdk='show_10878049'></script>
   <style>
     body { margin: 0; background: #1a1a2e; display: flex; flex-direction: column;
-           align-items: center; justify-content: center; height: 100vh;
-           font-family: Arial, sans-serif; color: #fff; text-align: center; }
-    .card { background: #16213e; border-radius: 16px; padding: 32px 24px; max-width: 320px; }
+           align-items: center; justify-content: center; min-height: 100vh;
+           font-family: Arial, sans-serif; color: #fff; text-align: center; padding: 16px; box-sizing: border-box; }
+    .card { background: #16213e; border-radius: 16px; padding: 32px 24px; max-width: 360px; width: 100%; box-sizing: border-box; }
     h2 { margin: 0 0 8px; font-size: 22px; }
-    p  { margin: 0 0 24px; color: #aaa; font-size: 14px; }
-    #adContainer { min-height: 250px; display: flex; align-items: center;
+    p  { margin: 0 0 20px; color: #aaa; font-size: 14px; }
+    #adContainer { min-height: 200px; display: flex; align-items: center;
                    justify-content: center; border: 1px dashed #444;
-                   border-radius: 8px; margin-bottom: 20px; color: #666; font-size: 13px; }
+                   border-radius: 8px; margin-bottom: 16px; color: #666; font-size: 13px; }
     button { width: 100%; padding: 14px; border: none; border-radius: 10px;
-             background: #0f3460; color: #fff; font-size: 16px; cursor: pointer; }
+             color: #fff; font-size: 16px; cursor: pointer; margin-top: 8px; }
+    .btn-primary  { background: #0f3460; }
+    .btn-success  { background: #1a6640; font-size: 18px; font-weight: bold; }
     button:disabled { opacity: .5; cursor: not-allowed; }
     #status { margin-top: 12px; font-size: 13px; color: #4ecca3; min-height: 18px; }
     #countdown { font-size: 13px; color: #ff6b6b; margin-top: 8px; min-height: 18px; }
+    #closeBox { display: none; margin-top: 16px; padding: 16px; background: #1a6640; border-radius: 12px; }
+    #closeBox h3 { margin: 0 0 8px; font-size: 18px; }
+    #closeBox p  { margin: 0 0 12px; color: #d4f5e0; font-size: 14px; }
   </style>
 </head>
 <body>
@@ -28,9 +33,17 @@
     <h2>📢 Reklam</h2>
     <p>Testi açmaq üçün reklamı izləyin</p>
     <div id="adContainer">Reklam yüklənir...</div>
-    <button id="watchBtn" onclick="watchAd()">▶️ Reklamı İzlə</button>
+    <button id="watchBtn" class="btn-primary" onclick="watchAd()">▶️ Reklamı İzlə</button>
     <div id="status"></div>
     <div id="countdown"></div>
+
+    <!-- Reklam bitdikdən sonra göstərilən əl ilə bağlama düyməsi.
+         tg.close() bütün klientlərdə avtomatik işləmir, ona görə əl ilə fallback. -->
+    <div id="closeBox">
+      <h3>✅ Reklam tamamlandı!</h3>
+      <p>Bota qayıtmaq üçün düyməni bas (avtomatik bağlanmasa).</p>
+      <button class="btn-success" onclick="forceClose()">⬅️ Bota Qayıt</button>
+    </div>
   </div>
 
   <script>
@@ -38,16 +51,13 @@
     tg.ready();
     tg.expand();
 
-    // Reklamın hansı kontekstdə olduğunu URL hash-dən oxuyuruq
-    // bot bu HTML-i belə açacaq:
-    //   ?...#ctx=start  → /start sonrası reklam (ana menyuya keçid)
-    //   ?...#ctx=cont   → test arası reklam (növbəti suala keçid)
+    // Kontekst URL hash-dən gəlir: #ctx=start və ya #ctx=cont
     const hash = window.location.hash.replace('#', '');
     const params = new URLSearchParams(hash);
     const ctx = params.get('ctx') || 'start';
 
     let countdownTimer = null;
-    let confirmed = false;
+    let signalSent = false;
 
     function setStatus(msg) {
       document.getElementById('status').textContent = msg;
@@ -56,11 +66,8 @@
       document.getElementById('countdown').textContent = msg;
     }
 
-    function confirmAndClose(reason) {
-      if (confirmed) return;
-      confirmed = true;
-      // Bota məlumat göndər: reklam tamamlandı + kontekst + səbəb + timestamp.
-      // Bot bu siqnalı yoxlayır — manual keçid yoxdur.
+    function sendSignal(reason) {
+      if (signalSent) return;
       const payload = JSON.stringify({
         type: 'ad_done',
         ctx: ctx,
@@ -69,8 +76,26 @@
       });
       try {
         tg.sendData(payload);
+        signalSent = true;
       } catch (e) {
         setStatus('❌ Bota siqnal göndərilə bilmədi: ' + e.message);
+      }
+    }
+
+    function showCloseBox() {
+      document.getElementById('closeBox').style.display = 'block';
+      document.getElementById('watchBtn').style.display = 'none';
+    }
+
+    function forceClose() {
+      // Əvvəlcə yenə siqnal göndər (təkrar zərərsizdir, bot dublikat qəbul edir)
+      sendSignal('manual_close');
+      // Sonra bağlamağa cəhd et
+      try {
+        tg.close();
+      } catch (e) {
+        // tg.close() işləmirsə, istifadəçiyə bildiriş ver
+        setStatus('Telegram pəncərəni avtomatik bağlamır. Sağ yuxarıdakı × ilə bağlayın.');
       }
     }
 
@@ -87,21 +112,26 @@
 
       show_10878049().then(() => {
         clearInterval(countdownTimer);
-        setStatus('✅ Reklam tamamlandı!');
+        setStatus('');
         setCountdown('');
-        btn.textContent = '✅ Reklam İzləndi';
-        btn.style.background = '#1a6640';
-        confirmAndClose('completed');
+        // 1) Bota dərhal siqnal göndər (tg.close() işləməsə də bot artıq qəbul etmiş olur)
+        sendSignal('completed');
+        // 2) Avtomatik bağlanmaq üçün cəhd
+        setTimeout(() => {
+          try { tg.close(); } catch (e) {}
+          // 3) Əgər 1 saniyə sonra hələ açıqdırsa, manual düyməni göstər
+          setTimeout(showCloseBox, 1000);
+        }, 500);
       }).catch(e => {
         clearInterval(countdownTimer);
-        // Reklam yüklənmədisə və minimum 5 saniyə keçibsə, yenə də icazə ver.
-        // Bu, monetag bəzən boş zonadan reklam göstərə bilməyəndə işləyir.
         if (waited >= 5) {
-          setStatus('ℹ️ Reklam yüklənmədi.');
+          setStatus('');
           setCountdown('');
-          btn.textContent = '✅ Davam et';
-          btn.style.background = '#1a6640';
-          confirmAndClose('no_inventory');
+          sendSignal('no_inventory');
+          setTimeout(() => {
+            try { tg.close(); } catch (e) {}
+            setTimeout(showCloseBox, 1000);
+          }, 500);
         } else {
           setStatus('⚠️ Reklam yüklənmədi. Bir az gözləyib yenə cəhd edin.');
           setCountdown('');
